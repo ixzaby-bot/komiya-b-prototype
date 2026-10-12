@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>取調室の小宮 — B版 Narrative Prototype</title>
+<style>
+  :root{
+    --bg:#101216; --panel:#171a21; --panel2:#20242d; --line:#343a47;
+    --text:#f3f5f7; --muted:#aeb7c5; --accent:#e6b85c; --danger:#d76868;
+    --ok:#77c69a; --blue:#79aeea; --shadow:0 14px 40px rgba(0,0,0,.32);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;
+    color:var(--text); background:
+      radial-gradient(circle at 20% 0%, #20242d 0%, transparent 35%),
+      linear-gradient(180deg,#0f1115,#12151b 45%,#0b0d11);
+    min-height:100vh;
+  }
+  button{font:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 40px}
+  .topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .brand{font-weight:800;letter-spacing:.08em;font-size:14px;color:var(--accent)}
+  .meta{font-size:12px;color:var(--muted)}
+  .screen{
+    background:rgba(23,26,33,.95);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden
+  }
+  .hero{padding:30px 26px 24px;background:linear-gradient(145deg,#1d2028,#11141a)}
+  h1{margin:0 0 8px;font-size:clamp(28px,5vw,54px);letter-spacing:.06em}
+  .sub{color:#e0c98f;font-weight:700;margin-bottom:18px}
+  .lead{color:var(--muted);line-height:1.8;max-width:780px}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+  .btn{
+    border:1px solid var(--line);background:var(--panel2);color:var(--text);
+    padding:12px 16px;border-radius:12px;cursor:pointer;font-weight:700;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn.primary{background:var(--accent);color:#1b1710;border-color:#f0ca77}
+  .btn.danger{background:#3a2426;border-color:#714044}
+  .btn.ghost{background:transparent}
+  .btn:disabled{opacity:.38;cursor:not-allowed}
+  .case{padding:24px 26px;line-height:1.8}
+  .case h2,.section-title{font-size:18px;margin:0 0 12px}
+  .casebox{background:#11141a;border-left:4px solid var(--accent);padding:16px 18px;border-radius:10px}
+  .game{display:grid;grid-template-columns:1.3fr .9fr;gap:14px;padding:14px}
+  .left,.right{display:flex;flex-direction:column;gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .card-h{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center}
+  .card-b{padding:14px}
+  .clock{display:flex;align-items:center;gap:12px}
+  .clockline{height:6px;flex:1;background:#292e38;border-radius:99px;overflow:hidden}
+  .clockfill{height:100%;background:linear-gradient(90deg,var(--accent),#d5775e);transition:width .3s}
+  .suspect{
+    min-height:220px;display:grid;grid-template-columns:160px 1fr;gap:18px;align-items:center;
+    background:linear-gradient(160deg,#20242d,#15181e)
+  }
+  .portrait{
+    width:140px;height:170px;border-radius:12px;border:1px solid #474e5e;
+    background:
+      radial-gradient(circle at 50% 32%, #c8b9a7 0 22%, transparent 23%),
+      radial-gradient(circle at 50% 57%, #7c6c63 0 30%, transparent 31%),
+      linear-gradient(180deg,#414754,#20242c);
+    position:relative;overflow:hidden;margin:auto;
+  }
+  .portrait:after{content:"小宮 清一";position:absolute;left:0;right:0;bottom:0;padding:8px;text-align:center;background:rgba(0,0,0,.58);font-size:12px}
+  .mood{font-size:12px;color:var(--muted);margin-bottom:8px}
+  .line{font-size:19px;line-height:1.65;min-height:92px}
+  .hint{font-size:12px;color:#8f98a6;margin-top:10px}
+  .meters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .meter{background:#11141a;padding:10px;border-radius:10px;border:1px solid #2d3340}
+  .meter-name{font-size:11px;color:var(--muted);display:flex;justify-content:space-between}
+  .bar{height:7px;background:#272c35;border-radius:99px;margin-top:7px;overflow:hidden}
+  .bar>i{display:block;height:100%;border-radius:99px;transition:width .25s}
+  #shockBar{background:var(--danger)} #resBar{background:#cf8b68} #trustBar{background:var(--ok)}
+  .log{height:185px;overflow:auto;display:flex;flex-direction:column;gap:7px}
+  .log p{margin:0;padding:8px 10px;background:#12151b;border-radius:9px;line-height:1.55;font-size:13px}
+  .log .sys{color:#d6c28f;border-left:3px solid var(--accent)}
+  .log .komiya{color:#e7e7e7}
+  .log .you{color:#b9d8ff}
+  .commands{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .cmd{padding:12px 8px;border-radius:12px;border:1px solid var(--line);background:#20242d;color:var(--text);font-weight:700;cursor:pointer}
+  .cmd.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+  .choices{display:grid;gap:8px}
+  .choice{
+    text-align:left;padding:12px;border-radius:10px;border:1px solid #343a47;background:#181b22;color:var(--text);cursor:pointer;line-height:1.5
+  }
+  .choice small{display:block;color:var(--muted);margin-top:4px}
+  .choice.locked{opacity:.38;cursor:not-allowed}
+  .tag{display:inline-block;font-size:10px;padding:3px 7px;border-radius:99px;background:#2a303b;color:#c7d0dc;margin-left:6px}
+  .notes{display:grid;gap:7px}
+  .note{font-size:13px;color:#d5d9df;background:#11141a;border:1px solid #2b313d;border-radius:9px;padding:9px 10px}
+  .evidence-list{display:grid;gap:8px}
+  .evidence{padding:10px;border:1px solid #343a47;border-radius:10px;background:#15181e}
+  .evidence b{display:block;margin-bottom:3px}
+  .evidence span{font-size:12px;color:var(--muted);line-height:1.5}
+  .connected{animation:flash 1s ease}
+  @keyframes flash{0%{box-shadow:0 0 0 rgba(230,184,92,0)}50%{box-shadow:0 0 40px rgba(230,184,92,.45)}100%{box-shadow:0 0 0 rgba(230,184,92,0)}}
+  .overlay{
+    position:fixed;inset:0;background:rgba(5,7,10,.88);display:none;align-items:center;justify-content:center;padding:18px;z-index:20
+  }
+  .modal{max-width:720px;width:100%;background:#171a21;border:1px solid #444b59;border-radius:18px;box-shadow:var(--shadow);padding:22px;max-height:88vh;overflow:auto}
+  .modal h2{margin-top:0}.modal .choice{margin:8px 0;width:100%}
+  .ending{padding:32px 26px;text-align:center}
+  .rank{font-size:54px;font-weight:900;color:var(--accent);letter-spacing:.08em}
+  .scoregrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px auto;max-width:620px}
+  .score{background:#11141a;padding:14px;border:1px solid #2e3440;border-radius:12px}
+  .score span{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .stars{color:#efca72;letter-spacing:.08em}
+  .small{font-size:12px;color:var(--muted)}
+  .hidden{display:none!important}
+  @media (max-width:820px){
+    .game{grid-template-columns:1fr}
+    .suspect{grid-template-columns:105px 1fr}
+    .portrait{width:95px;height:120px}
+    .commands{grid-template-columns:repeat(2,1fr)}
+    .scoregrid{grid-template-columns:1fr}
+    .line{font-size:17px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">B / AI NARRATIVE IMPROVEMENT BASELINE</div>
+    <div class="meta">Human Delta Trial · Prototype v1.0</div>
+  </div>
+
+  <section id="titleScreen" class="screen">
+    <div class="hero">
+      <h1>取調室の小宮</h1>
+      <div class="sub">嘘を暴くだけでは、真相には届かない。</div>
+      <p class="lead">
+        古美術店「三星堂」への侵入事件。容疑者は元錠前職人・小宮清一、68歳。
+        あなたには20手の取調べ時間がある。犯行を証明するだけでなく、
+        「なぜ彼がそこまでしたのか」まで辿り着けるだろうか。
+      </p>
+      <div class="actions">
+        <button class="btn primary" onclick="showCase()">取調開始</button>
+        <button class="btn" onclick="showHow()">遊び方</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="caseScreen" class="screen hidden">
+    <div class="case">
+      <h2>事件概要</h2>
+      <div class="casebox">
+        古美術店「三星堂」で深夜、何者かが裏口の錠を特殊工具で解錠し侵入。<br>
+        現金や高価な商品にはほとんど手をつけず、一幅の掛け軸「山水図」を持ち去ろうとしたところを警備員に発見され逃走した。<br><br>
+        付近の防犯カメラには、元錠前職人・<b>小宮清一（68）</b>によく似た人物が映っている。<br>
+        小宮は任意同行に応じたが、犯行を否認している。
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="startGame()">取調室へ</button>
+        <button class="btn ghost" onclick="goTitle()">戻る</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="gameScreen" class="screen hidden">
+    <div class="game">
+      <div class="left">
+        <div class="card">
+          <div class="card-h">
+            <div class="clock"><b id="timeText">21:00</b><div class="clockline"><div id="clockFill" class="clockfill" style="width:100%"></div></div><b>23:00</b></div>
+            <div>残り手数 <b id="turnText">20</b></div>
+          </div>
+          <div class="card-b suspect">
+            <div class="portrait"></div>
+            <div>
+              <div id="moodText" class="mood">状態：平静</div>
+              <div id="dialogue" class="line">「……で。聞きたいことってのは何だ？」</div>
+              <div class="hint">小宮の返答だけでなく、沈黙や反発も情報です。</div>
+            </div>
+          </div>
+          <div class="card-b">
+            <div class="meters">
+              <div class="meter">
+                <div class="meter-name"><span>動揺</span><span id="shockNum">0</span></div>
+                <div class="bar"><i id="shockBar" style="width:0%"></i></div>
+              </div>
+              <div class="meter">
+                <div class="meter-name"><span>反発</span><span id="resNum">2</span></div>
+                <div class="bar"><i id="resBar" style="width:40%"></i></div>
+              </div>
+              <div class="meter">
+                <div class="meter-name"><span>信頼</span><span id="trustNum">0</span></div>
+                <div class="bar"><i id="trustBar" style="width:0%"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><b>取調コマンド</b><span class="small">1行動 = 1手</span></div>
+          <div class="card-b">
+            <div class="commands">
+              <button class="cmd active" data-mode="question" onclick="setMode('question',this)">質問</button>
+              <button class="cmd" data-mode="evidence" onclick="setMode('evidence',this)">証拠</button>
+              <button class="cmd" data-mode="attitude" onclick="setMode('attitude',this)">態度</button>
+              <button class="cmd" data-mode="deduce" onclick="openDeduction()">推理</button>
+            </div>
+            <div id="choiceArea" class="choices" style="margin-top:12px"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><b>会話ログ</b><button class="btn ghost" style="padding:4px 8px" onclick="downloadLog()">ログ保存</button></div>
+          <div class="card-b"><div id="log" class="log"></div></div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="card">
+          <div class="card-h"><b>Narrative Note</b><span class="small">答えではなく、現在の疑問</span></div>
+          <div class="card-b"><div id="notes" class="notes"></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><b>証拠一覧</b><span id="evidenceCount" class="small"></span></div>
+          <div class="card-b"><div id="evidenceList" class="evidence-list"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="endingScreen" class="screen hidden">
+    <div class="ending">
+      <div id="rank" class="rank">S</div>
+      <h2 id="endingTitle">UNDERSTANDING</h2>
+      <p id="endingText" class="lead" style="margin:0 auto"></p>
+      <div class="scoregrid">
+        <div class="score"><span>事実理解</span><div id="factStars" class="stars">★★★★★</div></div>
+        <div class="score"><span>目的理解</span><div id="purposeStars" class="stars">★★★★★</div></div>
+        <div class="score"><span>人物理解</span><div id="humanStars" class="stars">★★★★★</div></div>
+      </div>
+      <div class="actions" style="justify-content:center">
+        <button class="btn primary" onclick="restart()">もう一度プレイ</button>
+        <button class="btn" onclick="downloadLog()">プレイログ保存</button>
+      </div>
+      <p class="small" style="margin-top:18px">B版はAI単独改善案の固定ベースラインです。</p>
+    </div>
+  </section>
+</div>
+
+<div id="overlay" class="overlay"><div id="modal" class="modal"></div></div>
+
+<script>
+const QUESTIONS = [
+  {id:"q01",text:"事件当日の夜、どこにいましたか？",unlock:s=>true,
+   answer:"家にいたよ。晩飯食って、そのまま寝ちまった。",flag:"alibiStatement"},
+  {id:"q02",text:"三星堂には行ったことがありますか？",unlock:s=>true,
+   answer:"二、三度くらいかな。骨董なんて柄じゃない。",flag:"shopStatement"},
+  {id:"q03",text:"錠前職人時代の道具は残っていますか？",unlock:s=>true,
+   answer:"とっくに全部処分したよ。もう使うこともない。",flag:"toolStatement"},
+  {id:"q04",text:"最近、金に困っていませんか？",unlock:s=>true,
+   answer:"年金でどうにかやってる。盗みまでやるほどじゃない。",flag:"moneyStatement"},
+  {id:"q05",text:"この掛け軸を知っていますか？",unlock:s=>s.flags.pawnKnown,
+   answer:"……知らないね。",flag:"paintingStatement"},
+  {id:"q06",text:"なぜ三星堂に何度も通っていたんです？",unlock:s=>s.flags.shopVisitsKnown,
+   answer:"散歩のついでだ。見るだけなら金は取られんだろ。",flag:"repeatVisitStatement"},
+  {id:"q07",text:"奥さんについて聞いても？",unlock:s=>s.flags.moneyProblemKnown && s.trust>=1,
+   answer:"……女房は、もういない。",effect:s=>{s.flags.wifeExistsKnown=true;s.flags.wifeDeathKnown=true;s.emotionScore++}},
+  {id:"q08",text:"奥さんはこの掛け軸を知っていましたか？",unlock:s=>s.flags.wifeDeathKnown && s.flags.pawnKnown,
+   answer:s=> s.resistance>=4 ? "女房は関係ない。そこまでだ。" : "……実家にあった絵だ。",
+   effect:s=>{ if(s.resistance<4){s.flags.wifePaintingLinkKnown=true;s.emotionScore++} }},
+  {id:"q09",text:"掛け軸を買い戻そうとしていましたか？",unlock:s=>s.flags.paintingTargetConfirmed,
+   answer:"……店の親父には、何度か値段を聞いた。",effect:s=>{s.purposeScore++}},
+  {id:"q10",text:"奥さんが亡くなる前、何か話しましたか？",unlock:s=>s.flags.wifePaintingLinkKnown && s.trust>=3,
+   answer:"……昔の家の話をしてたよ。庭がどうとか、床の間がどうとか……。",
+   effect:s=>{s.flags.emotionalAccess=true;s.emotionScore+=2}}
+];
+
+const EVIDENCE = [
+  {id:"e01",name:"防犯カメラ映像",desc:"22時14分、三星堂付近を歩く小宮に酷似した人物。"},
+  {id:"e02",name:"店舗来店記録",desc:"半年間で38回来店。山水図の展示期間とほぼ一致。"},
+  {id:"e03",name:"特殊解錠ピック",desc:"現場付近で発見。「コ」の刻印がある古い職人用特注品。"},
+  {id:"e04",name:"質入れ台帳",desc:"数年前、「小宮清一」名義で山水図を質入れした記録。"},
+  {id:"e05",name:"病院請求書",desc:"妻の長期入院期間に高額な医療費支払い。"},
+  {id:"e06",name:"三星堂の商品票",desc:"山水図　販売価格300万円。"},
+  {id:"e07",name:"古い家族写真",desc:"小宮夫妻の古い写真。背景の床の間に山水図らしき掛け軸。"}
+];
+
+function freshState(){
+  return {
+    turn:20,shock:0,resistance:2,trust:0,factScore:0,purposeScore:0,emotionScore:0,
+    asked:{}, statements:{}, usedEvidence:{}, teaUsed:false,mode:"question",
+    flags:{
+      alibiStatement:false,shopStatement:false,toolStatement:false,moneyStatement:false,paintingStatement:false,
+      cameraContradiction:false,toolContradiction:false,shopVisitsKnown:false,pawnKnown:false,moneyProblemKnown:false,
+      wifeExistsKnown:false,wifeDeathKnown:false,wifePaintingLinkKnown:false,crimeConfirmed:false,
+      paintingTargetConfirmed:false,motiveHypothesisUnlocked:false,emotionalAccess:false,fullConfession:false
+    },
+    playLog:[], ended:false
+  };
+}
+let S=freshState();
+
+function show(id){
+  ["titleScreen","caseScreen","gameScreen","endingScreen"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
+function showCase(){show("caseScreen")}
+function goTitle(){show("titleScreen")}
+function showHow(){
+  openModal(`<h2>遊び方</h2>
+  <p>20手以内に小宮を取り調べます。</p>
+  <p><b>質問</b>で供述を引き出し、<b>証拠</b>で矛盾や関係性を示し、<b>態度</b>で小宮の心理状態を変えます。</p>
+  <p>このB版では、犯行を証明するだけでは最高評価になりません。</p>
+  <p><b>「何をしたか → 何のためにしたか → なぜそこまでしたか」</b>の三段階を、自分でつないでください。</p>
+  <button class="btn primary" onclick="closeModal()">閉じる</button>`);
+}
+function startGame(){S=freshState();show("gameScreen");addLog("sys","取調開始。残り20手。");renderAll()}
+function restart(){startGame()}
+function clamp(v){return Math.max(0,Math.min(5,v))}
+function spend(action,id){
+  if(S.ended)return false;
+  if(S.turn<=0){endGame("D");return false}
+  S.turn--;
+  S.playLog.push({t:new Date().toISOString(),turnLeft:S.turn,action,id});
+  if(S.turn<=0 && !S.ended)setTimeout(()=>endGame("D"),250);
+  return true;
+}
+function addLog(type,text){
+  const p=document.createElement("p");p.className=type;p.textContent=text;
+  const log=document.getElementById("log");log.appendChild(p);log.scrollTop=log.scrollHeight;
+}
+function setDialogue(text){
+  document.getElementById("dialogue").textContent="「"+text+"」";
+}
+function setMode(mode,btn){
+  S.mode=mode; document.querySelectorAll(".cmd").forEach(b=>b.classList.remove("active"));
+  if(btn)btn.classList.add("active"); renderChoices();
+}
+function renderAll(){
+  S.shock=clamp(S.shock);S.resistance=clamp(S.resistance);S.trust=clamp(S.trust);
+  document.getElementById("turnText").textContent=S.turn;
+  const elapsed=20-S.turn;
+  document.getElementById("clockFill").style.width=(S.turn/20*100)+"%";
+  const mins=Math.min(120,elapsed*6); const hh=21+Math.floor(mins/60); const mm=mins%60;
+  document.getElementById("timeText").textContent=String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0");
+  [["shock",S.shock],["res",S.resistance],["trust",S.trust]].forEach(([k,v])=>{
+    document.getElementById(k+"Num").textContent=v;document.getElementById(k+"Bar").style.width=(v*20)+"%";
+  });
+  let mood="平静";
+  if(S.resistance>=4)mood="反発";
+  else if(S.shock>=4)mood="動揺";
+  else if(S.trust>=3)mood="少し心を開いている";
+  else if(S.resistance>=3)mood="警戒";
+  document.getElementById("moodText").textContent="状態："+mood;
+  renderChoices();renderNotes();renderEvidence();
+  if(S.resistance>=5 && !S.ended){setTimeout(()=>endGame("C"),250)}
+}
+function renderChoices(){
+  const area=document.getElementById("choiceArea"); if(!area)return; area.innerHTML="";
+  if(S.mode==="question"){
+    QUESTIONS.forEach(q=>{
+      const unlocked=q.unlock(S), b=document.createElement("button");b.className="choice"+(unlocked?"":" locked");
+      b.disabled=!unlocked;b.innerHTML=q.text+(S.asked[q.id]?`<span class="tag">質問済</span>`:"");
+      b.onclick=()=>ask(q.id);area.appendChild(b);
+    });
+  } else if(S.mode==="evidence"){
+    EVIDENCE.forEach(e=>{
+      const b=document.createElement("button");b.className="choice";
+      b.innerHTML=`<b>${e.name}</b><small>${e.desc}</small>`;
+      b.onclick=()=>presentEvidence(e.id);area.appendChild(b);
+    });
+  } else if(S.mode==="attitude"){
+    [
+      ["pressure","圧をかける","動揺+2 / 反発+1 / 信頼-1"],
+      ["silenceEvidence","証拠を机に置いて黙る","動揺+1 / 信頼+1"],
+      ["tea","茶を出す",S.teaUsed?"すでに使用済み":"反発-1 / 信頼+1"],
+      ["wait","黙って待つ","信頼+1 / 動揺-1"],
+      ["bluff","かまをかける","状況次第で成功。失敗時は反発+1"]
+    ].forEach(([id,name,desc])=>{
+      const b=document.createElement("button");b.className="choice"; if(id==="tea"&&S.teaUsed)b.disabled=true;
+      b.innerHTML=`<b>${name}</b><small>${desc}</small>`;b.onclick=()=>attitude(id);area.appendChild(b)
+    });
+  }
+}
+function ask(id){
+  const q=QUESTIONS.find(x=>x.id===id); if(!q.unlock(S))return;if(!spend("question",id))return;
+  S.asked[id]=true;addLog("you","あなた： "+q.text);
+  const ans=typeof q.answer==="function"?q.answer(S):q.answer;setDialogue(ans);addLog("komiya","小宮： "+ans);
+  if(q.flag){S.flags[q.flag]=true;S.statements[q.flag]=true}
+  if(q.effect)q.effect(S);
+  renderAll();
+}
+function presentEvidence(id){
+  if(!spend("evidence",id))return;
+  const e=EVIDENCE.find(x=>x.id===id);addLog("you","証拠提示： "+e.name);
+  let ok=false,msg="……それが何だっていうんだ？",connected=null;
+  if(id==="e01"&&S.flags.alibiStatement&&!S.flags.cameraContradiction){
+    ok=true;S.flags.cameraContradiction=true;S.factScore++;S.shock++;msg="……似た奴なんて、いくらでもいるだろ。";
+    connected="アリバイ証言 × 防犯カメラ → 『家にいた』は嘘";
+  } else if(id==="e02"&&S.flags.shopStatement&&!S.flags.shopVisitsKnown){
+    ok=true;S.flags.shopVisitsKnown=true;S.purposeScore++;msg="……数えてたのかよ。物好きだな。";
+    connected="『二、三度』 × 38回来店 → 店へ通い続けた理由がある？";
+  } else if(id==="e03"&&S.flags.toolStatement&&!S.flags.toolContradiction){
+    ok=true;S.flags.toolContradiction=true;S.factScore++;S.shock++;msg="……昔の道具だ。どこで拾った。";
+    connected="『全部処分した』 × 刻印入りピック → 道具は小宮につながる";
+  } else if(id==="e04"&&!S.flags.pawnKnown){
+    ok=true;S.flags.pawnKnown=true;S.purposeScore++;msg="……古い話だ。";
+    connected="山水図 × 小宮名義の質入れ → この掛け軸は小宮の過去にある";
+  } else if(id==="e05"&&S.flags.moneyStatement&&!S.flags.moneyProblemKnown){
+    ok=true;S.flags.moneyProblemKnown=true;S.emotionScore++;msg="……女房の治療費だ。だから何だ。";
+    connected="『金には困っていない』 × 高額医療費 → 過去に大きな出費があった";
+  } else if(id==="e06"&&S.flags.pawnKnown){
+    ok=true;S.purposeScore++;msg="三百万。……馬鹿みたいな値段だ。";
+    connected="質入れした品 × 300万円 → 買い戻すには現実的でない価格";
+  } else if(id==="e07"){
+    ok=true;S.emotionScore++;msg="……その写真、どこで。";
+    if(S.flags.pawnKnown){S.flags.wifePaintingLinkKnown=true;connected="家族写真 × 質入れ台帳 → 山水図は夫妻の生活の中にあった？"}
+    else connected="家族写真 → 背景の床の間に山水図らしきもの";
+  }
+  if(ok){
+    addLog("sys","CONNECTED： "+connected);setDialogue(msg);showConnect(connected);
+  } else {
+    S.resistance=clamp(S.resistance+1);setDialogue(msg);addLog("komiya","小宮： "+msg);addLog("sys","有効な接続は生まれなかった。");
+  }
+  renderAll();
+}
+function showConnect(text){
+  const card=document.querySelector(".suspect");card.classList.remove("connected");void card.offsetWidth;card.classList.add("connected");
+}
+function attitude(id){
+  if(!spend("attitude",id))return;
+  let msg="";
+  if(id==="pressure"){S.shock+=2;S.resistance++;S.trust--;msg="「……脅せば喋ると思ってるのか？」"}
+  if(id==="silenceEvidence"){S.shock++;S.trust++;msg="小宮は証拠を見たまま、しばらく黙っている。"}
+  if(id==="tea"){S.teaUsed=true;S.resistance--;S.trust++;msg="「……気が利くじゃないか。」"}
+  if(id==="wait"){
+    S.trust++;S.shock--;
+    msg=S.flags.wifeDeathKnown?"小宮は長い沈黙のあと、ふっと息を吐いた。":"小宮は腕を組んだまま、こちらを見返している。";
+  }
+  if(id==="bluff"){
+    if(S.flags.cameraContradiction||S.flags.shopVisitsKnown){S.shock++;msg="「……何を知ってる？」"}
+    else {S.resistance++;msg="「くだらんハッタリだ。」"}
+  }
+  addLog("sys","態度： "+({pressure:"圧をかける",silenceEvidence:"証拠を机に置いて黙る",tea:"茶を出す",wait:"黙って待つ",bluff:"かまをかける"}[id]));
+  document.getElementById("dialogue").textContent=msg;renderAll();
+}
+function openDeduction(){
+  if(S.ended)return;
+  if(!S.flags.crimeConfirmed){
+    if(!(S.flags.cameraContradiction&&S.flags.toolContradiction)){
+      return openModal(`<h2>推理</h2><p>まだ「現場にいた」ことを組み立てる材料が足りない。</p><button class="btn" onclick="closeModal()">戻る</button>`);
+    }
+    return deduction1();
+  }
+  if(!S.flags.paintingTargetConfirmed){
+    if(!(S.flags.shopVisitsKnown&&S.flags.pawnKnown)){
+      return openModal(`<h2>推理</h2><p>小宮が三星堂へ通っていた理由と、山水図との関係をもう少し調べる必要がある。</p><button class="btn" onclick="closeModal()">戻る</button>`);
+    }
+    return deduction2();
+  }
+  if(!S.flags.motiveHypothesisUnlocked){
+    if(!(S.flags.wifePaintingLinkKnown&&S.emotionScore>=2)){
+      return openModal(`<h2>推理</h2><p>掛け軸と小宮の感情をつなぐ材料がまだ足りない。</p><button class="btn" onclick="closeModal()">戻る</button>`);
+    }
+    return deduction3();
+  }
+  return finalInterrogation();
+}
+function deduction1(){
+  openChoice("推理フェーズ1","小宮は事件現場にいた？",[
+    ["a","偶然近くを通っただけ"],
+    ["b","三星堂へ侵入した"],
+    ["c","別人が小宮の道具を使った"]
+  ],v=>{
+    if(v==="b"){S.flags.crimeConfirmed=true;S.factScore+=2;addLog("sys","推理成立：小宮は三星堂へ侵入した。だが――何のために？");closeModal();renderAll()}
+    else wrongDeduction();
+  });
+}
+function deduction2(){
+  openChoice("推理フェーズ2","小宮の本当の目的は？",[
+    ["a","現金"],["b","高価な骨董品"],["c","山水図"],["d","店主への復讐"]
+  ],v=>{
+    if(v==="c"){S.flags.paintingTargetConfirmed=true;S.purposeScore+=2;addLog("sys","推理成立：目的は山水図。では――なぜそこまで執着する？");closeModal();renderAll()}
+    else wrongDeduction();
+  });
+}
+function deduction3(){
+  openChoice("推理フェーズ3","小宮が山水図を取り戻そうとした理由は？",[
+    ["a","高値で転売するため"],["b","店主への復讐"],["c","妻との記憶につながる品だから"],["d","職人としての誇りを取り戻すため"]
+  ],v=>{
+    if(v==="c"){rootEvidenceSelect()} else wrongDeduction();
+  });
+}
+function rootEvidenceSelect(){
+  document.getElementById("modal").innerHTML=`<h2>根拠を選ぶ</h2><p>その仮説を支える根拠を2つ選んでください。</p>
+  <div id="rootChoices" class="choices"></div><button class="btn primary" onclick="judgeRoots()">確定</button> <button class="btn" onclick="closeModal()">戻る</button>`;
+  let box=document.getElementById("rootChoices");
+  ["e04","e05","e07","e01","e03","e02"].forEach(id=>{
+    let e=EVIDENCE.find(x=>x.id===id), label=document.createElement("label");label.className="choice";
+    label.innerHTML=`<input type="checkbox" value="${id}" class="rootCheck"> <b>${e.name}</b><small>${e.desc}</small>`;box.appendChild(label);
+  });
+}
+function judgeRoots(){
+  const ids=[...document.querySelectorAll(".rootCheck:checked")].map(x=>x.value);
+  const direct=ids.includes("e04")&&ids.includes("e07");
+  const alt=ids.includes("e04")&&ids.includes("e05")&&S.flags.wifeDeathKnown;
+  if(direct||alt){
+    S.flags.motiveHypothesisUnlocked=true;S.emotionScore+=2;addLog("sys","推理成立：山水図は妻との記憶につながる品だ。");closeModal();renderAll();
+    setTimeout(()=>finalInterrogation(),300);
+  } else {
+    wrongDeduction(false);
+  }
+}
+function finalInterrogation(){
+  openChoice("最終取調","小宮さん。あなたが本当に取り戻したかったのは――",[
+    ["a","「あなたが犯人ですね」"],
+    ["b","「掛け軸が欲しかったんですね」"],
+    ["c","「奥さんとの時間を、取り戻したかったんですね」"]
+  ],v=>{
+    closeModal();
+    if(v==="c"&&S.trust>=3&&S.flags.motiveHypothesisUnlocked){fullConfession()}
+    else if(S.flags.paintingTargetConfirmed){endGame("A")}
+    else endGame("B");
+  });
+}
+function fullConfession(){
+  S.flags.fullConfession=true;
+  const lines=[
+    "……違う。","時間なんか、戻るわけない。","分かってるんだよ、そんなこと。",
+    "ただ……あいつが最後に、昔の家の話ばかりするんだ。",
+    "床の間に掛かってた、あの絵の話もした。","俺が手放したんだ。",
+    "病院代が要った。仕方なかった。……そう思ってた。",
+    "けどな。","一日遅かった。","金を持って戻った時には、もう流れたあとだった。",
+    "三星堂にあるって分かってから、何度も見に行ったよ。","三百万だとさ。笑っちまうよな。",
+    "……もう一度だけ。","あいつに、見せてやりたかったんだ。"
+  ];
+  let i=0;
+  function next(){
+    if(i>=lines.length){addLog("you","あなた： 奥さんは、もう……");addLog("komiya","小宮： 分かってる。だから俺は、馬鹿なんだよ。");return setTimeout(()=>endGame("S"),700)}
+    setDialogue(lines[i]);addLog("komiya","小宮： "+lines[i]);i++;setTimeout(next,430);
+  }
+  next();
+}
+function wrongDeduction(close=true){
+  if(S.turn>0)S.turn--;S.playLog.push({t:new Date().toISOString(),turnLeft:S.turn,action:"wrongDeduction"});
+  addLog("sys","推理はまだつながらない。"); if(close)closeModal();renderAll();
+}
+function openChoice(title,q,choices,cb){
+  let html=`<h2>${title}</h2><p>${q}</p>`;
+  choices.forEach(([v,t])=>html+=`<button class="choice" onclick="modalChoice('${v}')">${t}</button>`);
+  html+=`<button class="btn" onclick="closeModal()">戻る</button>`;
+  window._modalCb=cb;openModal(html);
+}
+function modalChoice(v){if(window._modalCb)window._modalCb(v)}
+function openModal(html){document.getElementById("modal").innerHTML=html;document.getElementById("overlay").style.display="flex"}
+function closeModal(){document.getElementById("overlay").style.display="none";window._modalCb=null}
+function renderNotes(){
+  const n=[];
+  n.push("小宮は犯行を否認している。");
+  if(S.flags.cameraContradiction)n.push("・「家にいた」は嘘。現場付近にいた？");
+  if(S.flags.toolContradiction)n.push("・解錠ピックは小宮の道具につながる。");
+  if(S.flags.shopVisitsKnown)n.push("・三星堂へ半年で38回。何を見に来ていた？");
+  if(S.flags.pawnKnown)n.push("・山水図は以前、小宮が質入れしたもの。");
+  if(S.flags.moneyProblemKnown)n.push("・妻の入院時期に大きな医療費。質入れと関係？");
+  if(S.flags.crimeConfirmed)n.push("・犯行はほぼ確定。だが目的は？");
+  if(S.flags.paintingTargetConfirmed)n.push("・目的は山水図。金ではない。なぜ？");
+  if(S.flags.wifeDeathKnown)n.push("・妻はすでに亡くなっている。");
+  if(S.flags.wifePaintingLinkKnown)n.push("・妻と山水図の間に記憶がある？");
+  if(S.flags.motiveHypothesisUnlocked)n.push("・掛け軸ではなく、失われた時間を求めていた？");
+  document.getElementById("notes").innerHTML=n.map(x=>`<div class="note">${x}</div>`).join("");
+}
+function renderEvidence(){
+  document.getElementById("evidenceCount").textContent=EVIDENCE.length+"件";
+  document.getElementById("evidenceList").innerHTML=EVIDENCE.map(e=>`<div class="evidence"><b>${e.name}</b><span>${e.desc}</span></div>`).join("");
+}
+function endGame(rank){
+  if(S.ended)return;S.ended=true;
+  let title="",text="",scores=[5,1,1];
+  if(rank==="S"){title="UNDERSTANDING";text="あなたは犯行だけでなく、その理由に辿り着いた。事件を解いたのではない。ひとりの人間を理解した。";scores=[5,5,5]}
+  if(rank==="A"){title="CONFESSION";text="事件は解決した。だが、小宮が最後まで語らなかったものがある。";scores=[5,5,2]}
+  if(rank==="B"){title="PROOF";text="犯行を立証した。だが、目的も動機も不明のままだ。";scores=[5,2,1]}
+  if(rank==="C"){title="BREAKDOWN";text="小宮は口を閉ざした。取り調べは、真相より先に関係を壊した。";scores=[2,1,1]}
+  if(rank==="D"){title="TIME OUT";text="23時。時間切れ。事件の断片は集まったが、ひとつの物語にはならなかった。";scores=[Math.min(5,S.factScore+1),Math.min(5,S.purposeScore+1),Math.min(5,S.emotionScore)]}
+  document.getElementById("rank").textContent=rank;
+  document.getElementById("endingTitle").textContent=title;
+  document.getElementById("endingText").textContent=text;
+  ["factStars","purposeStars","humanStars"].forEach((id,i)=>document.getElementById(id).textContent="★".repeat(scores[i])+"☆".repeat(5-scores[i]));
+  S.playLog.push({t:new Date().toISOString(),action:"END",rank,scores,state:{turn:S.turn,shock:S.shock,resistance:S.resistance,trust:S.trust,flags:S.flags}});
+  closeModal();show("endingScreen");
+}
+function downloadLog(){
+  const payload={prototype:"Komiya B / AI Narrative Improvement Baseline",savedAt:new Date().toISOString(),log:S.playLog};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="komiya_B_playlog.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+}
+show("titleScreen");
+</script>
+</body>
+</html>
